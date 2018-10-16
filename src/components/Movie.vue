@@ -8,7 +8,7 @@
             <span class="grey--text">{{ movie.release_year }} ‧ {{ movie.genre }}</span>
           </div>
         </v-card-title>
-        <h6 class="card-title">Rate this movie</h6>
+        <h6 class="card-title" v-if="current_user" @click="rate">Rate this movie</h6>
         <v-card-text>
           {{ movie.description }}
         </v-card-text>
@@ -18,6 +18,34 @@
 </template>
 <script>
 import axios from 'axios';
+import Vue from 'vue';
+import StarRating from 'vue-star-rating';
+
+const wrapper = document.createElement('div');
+
+// Shared state
+const state = {
+  note: 0,
+};
+
+// Create component to content
+const RatingComponent = Vue.extend({
+  data() {
+    return { rating: 0 };
+  },
+  watch: {
+    rating(newVal) { state.note = newVal; },
+  },
+  template: `
+    <div class="rating">
+      How was your experience getting help with this issues?
+      <star-rating v-model="rating" :show-ratng="false"></star-rating>
+    </div>
+  `,
+  components: { 'star-rating': StarRating },
+});
+
+const component = new RatingComponent().$mount(wrapper);
 
 export default {
   name: 'Movie',
@@ -30,6 +58,37 @@ export default {
     this.fetchMovie();
   },
   methods: {
+    async rate() {
+      this.$swal({
+        content: component.$el,
+        buttons: {
+          confirm: {
+            value: 0,
+          },
+        },
+      })
+        .then(() => {
+          const movieId = this.$route.params.id;
+
+          return axios({
+            method: 'post',
+            data: {
+              rate: state.note,
+            },
+            url: `http://localhost:8081/movies/rate/${movieId}`,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
+            .then(() => {
+              this.$swal(`Thank you for rating! ${state.note}`, 'success');
+            })
+            .catch((error) => {
+              const message = error.response.data.message;
+              this.$swal('Oh oo!', `${message}`, 'error');
+            });
+        });
+    },
     async fetchMovie() {
       return axios({
         method: 'get',
