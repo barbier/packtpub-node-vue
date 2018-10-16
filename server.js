@@ -11,14 +11,22 @@ app.use(morgan('combined'));
 app.use(bodyParser.json());
 app.use(cors());
 
-//connect to mongodb
+// Connect to mongodb
 mongoose.connect('mongodb://localhost/movie_rating_app', function() {
   console.log('Connection has been made');
 })
 .catch(err => {
-  console.error('App starting error:', err.stack);
+  console.error(`App starting error: ${err.stack}`);
   process.exit(1);
 });
+
+// Include controllers
+fs.readdirSync('controllers').forEach(file => {
+  if (file.substr(-3) === '.js') {
+    const route = require(`./controllers/${file}`)
+    route.controller(app)
+  }
+})
 
 router.get('/', function(req, res) {
   res.json({ message: 'API Initialized!'});
