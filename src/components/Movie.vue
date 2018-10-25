@@ -16,6 +16,7 @@
     </v-flex>
   </v-layout>
 </template>
+
 <script>
 import axios from 'axios';
 import Vue from 'vue';

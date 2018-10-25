@@ -39,10 +39,15 @@ export default {
     async fetchMovies() {
       return axios({
         methos: 'get',
-        url: 'http://localhost:8081/movies',
+        url: '/movies',
+        headers: { // eslint-disable-next-line
+          Authorization: `JWT ${token}`,
+          'Content-Type': 'application/json',
+        },
       })
         .then((response) => {
           this.movies = response.data.movies;
+          this.current_user = response.data.current_user;
         })
         .catch(() => {});
     },
